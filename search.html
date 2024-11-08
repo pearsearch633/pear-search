@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pear Search</title>
+    <script async src="https://cse.google.com/cse.js?cx=65f6060fda3ed4352"></script>
+    <style>
+        /* Algemene stijlinstellingen */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f1f8, #d4e0ec);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;  /* Horizontaal centreren */
+            align-items: center;  /* Verticaal centreren */
+            min-height: 100vh;  /* Zorgt ervoor dat het scherm altijd minstens 100% van de hoogte van het scherm vult */
+            height: 100%;  /* Zorgt ervoor dat de body de volledige hoogte van het scherm heeft */
+            overflow: hidden;  /* Verbergt eventuele scrollbalken op de body */
+        }
+
+        /* Container voor de zoekmachine */
+        .container {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 80%;  /* Zorgt ervoor dat de container altijd 80% van de breedte van het scherm gebruikt */
+            max-width: 700px;  /* Maximaliseer de breedte van de container tot 700px */
+            min-height: 70vh;  /* Zorgt ervoor dat de container altijd minstens 70% van de hoogte van het scherm vult */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;  /* Verticale centrering van de inhoud binnen de container */
+            align-items: center;  /* Horizontale centrering van de inhoud binnen de container */
+            text-align: center;
+            overflow: hidden;  /* Verbergt overloop van inhoud */
+        }
+
+        /* Titel */
+        h1 {
+            font-size: 3rem;  /* Verhoog de grootte van de titel */
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, #007aff, #34c759);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Google Custom Search box aanpassen */
+        .gcse-search {
+            margin-top: 20px;
+            width: 100%; /* Zorgt ervoor dat de zoekbalk de volledige breedte van de container gebruikt */
+            max-width: 900px; /* Verhoog de maximale breedte van de zoekbalk */
+            height: 45px; /* Maak de zoekbalk breder */
+        }
+
+        /* Vergroot de container van de zoekresultaten */
+        .gcse-search-results {
+            max-height: 500px;  /* Vergroot de hoogte van de zoekresultaten */
+            overflow-y: auto;  /* Maak de resultaten scrollbaar als ze de limiet overschrijden */
+            margin-top: 20px;
+        }
+
+        /* Stijl de zoekresultaten om ze visueel aantrekkelijker te maken */
+        .gcse-search-results .gsc-result {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* Voeg hover-effecten toe voor de zoekresultaten */
+        .gcse-search-results .gsc-result:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Stijl de links binnen de zoekresultaten */
+        .gcse-search-results .gsc-result a {
+            text-decoration: none;
+            color: #007aff;
+            font-weight: 600;
+        }
+
+        .gcse-search-results .gsc-result a:hover {
+            text-decoration: underline;
+        }
+
+        /* Fullscreen resultaat-overlay */
+        #fullscreen-results {
+            display: none; /* Begin als verborgen */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7); /* Zwarte achtergrond met transparantie */
+            z-index: 9999;
+            padding: 20px;
+            overflow-y: auto; /* Maak de resultaten scrollbaar als ze te groot zijn */
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            color: white;
+        }
+
+        /* Popup resultaten container */
+        #fullscreen-results .result-container {
+            background: #fff;
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            color: black;
+            overflow: auto;
+            max-height: 80vh; /* Zorgt ervoor dat de resultaten niet buiten het scherm vallen */
+        }
+
+        /* Sluitknop voor de fullscreen popup */
+        #fullscreen-results .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.6);
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #fullscreen-results .close-btn:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <!-- Container voor de zoekmachine -->
+    <div class="container">
+        <h1>Pear Search</h1>
+        <div class="gcse-search"></div>
+    </div>
+
+    <!-- Fullscreen Resultaten -->
+    <div id="fullscreen-results">
+        <button class="close-btn">&times; Sluiten</button>
+        <div class="result-container">
+            <!-- Zoekresultaten komen hier -->
+        </div>
+    </div>
+
+    <script>
+        function openFullscreenResults() {
+            // Verkrijg de zoekresultaten container
+            var resultsContainer = document.querySelector('.gcse-search-results');
+
+            // Verkrijg de fullscreen result container
+            var fullscreenResults = document.getElementById('fullscreen-results');
+            
+            // Kopieer de zoekresultaten naar de fullscreen container
+            fullscreenResults.querySelector('.result-container').innerHTML = resultsContainer.innerHTML;
+
+            // Toon de fullscreen resultaten
+            fullscreenResults.style.display = 'flex';
+        }
+
+        // Sluit de fullscreen popup wanneer de gebruiker op de sluitknop klikt
+        function closeFullscreenResults() {
+            var fullscreenResults = document.getElementById('fullscreen-results');
+            fullscreenResults.style.display = 'none';
+        }
+
+        // Event listener voor het sluiten van de fullscreen popup
+        document.querySelector('.close-btn').addEventListener('click', closeFullscreenResults);
+    </script>
+</body>
+</html>
